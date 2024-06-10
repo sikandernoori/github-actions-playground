@@ -22,7 +22,7 @@ jobs:
           if [[ "${{ steps.simulate_failure.outcome }}" == "failure" ]]; then
             echo "Job failed, error message: ${{ steps.simulate_failure.outputs.error-message }}"
             RETRY_COUNT=0
-            MAX_RETRIES=3
+            MAX_RETRIES=5
             SUCCESS=false
             until [[ $SUCCESS == true || $RETRY_COUNT -ge $MAX_RETRIES ]]; do
               ((RETRY_COUNT++))
