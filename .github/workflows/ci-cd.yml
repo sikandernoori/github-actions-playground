@@ -17,6 +17,7 @@ jobs:
           RETRY_COUNT=0
           MAX_RETRIES=5
           SUCCESS=false
+          echo "Before loop"
           until [ "$SUCCESS" = true ] || [ "$RETRY_COUNT" -ge "$MAX_RETRIES" ]; do
             ((RETRY_COUNT++))
             echo "Attempt $RETRY_COUNT/$MAX_RETRIES"
