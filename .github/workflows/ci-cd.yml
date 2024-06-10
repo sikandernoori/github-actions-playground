@@ -17,19 +17,18 @@ jobs:
           RETRY_COUNT=0
           MAX_RETRIES=5
           SUCCESS=false
-          until [ $SUCCESS = true ] || [ $RETRY_COUNT -ge $MAX_RETRIES ]; do
+          until [ "$SUCCESS" = true ] || [ "$RETRY_COUNT" -ge "$MAX_RETRIES" ]; do
             ((RETRY_COUNT++))
             echo "Attempt $RETRY_COUNT/$MAX_RETRIES"
-            # Simulate the command that might fail
             if bash -c 'echo "This step will always fail."; exit 1'; then
               SUCCESS=true
               echo "Job succeeded on attempt $RETRY_COUNT"
             else
               echo "Attempt $RETRY_COUNT failed."
-              sleep 10 # Delay to avoid immediate retry
+              sleep 10
             fi
           done
-          if [ $SUCCESS = false ]; then
+          if [ "$SUCCESS" = false ]; then
             echo "Job failed after $MAX_RETRIES retries"
             exit 1
           fi
