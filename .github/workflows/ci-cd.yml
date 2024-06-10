@@ -15,5 +15,7 @@ jobs:
         needs: [always_fail]
         runs-on: ubuntu-latest
         steps:
-          - name: Run another file
+          - env:
+              GH_REPO: ${{ github.repository }}
+              GH_TOKEN: ${{ github.token }}
             run: gh workflow run retry-workflow.yml -F retry=3
