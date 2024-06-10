@@ -17,8 +17,7 @@ jobs:
           RETRY_COUNT=0
           MAX_RETRIES=5
           SUCCESS=false
-          echo "Before loop"
-          until [ "$SUCCESS" = true ] || [ "$RETRY_COUNT" -ge "$MAX_RETRIES" ]; do
+          while [ "$RETRY_COUNT" -lt "$MAX_RETRIES" ] && [ "$SUCCESS" != true ]; do
             ((RETRY_COUNT++))
             echo "Attempt $RETRY_COUNT/$MAX_RETRIES"
             if bash -c 'echo "This step will always fail."; exit 1'; then
