@@ -10,7 +10,8 @@ on:
 jobs:
     rerun:
         runs-on: ubuntu-latest
-        permissions: actions
+        permissions:
+          actions: write
         steps:
             - name: rerun ${{ inputs.retry }}
               env:
