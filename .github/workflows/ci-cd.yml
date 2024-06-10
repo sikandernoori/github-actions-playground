@@ -7,35 +7,13 @@ jobs:
     name: Always Fail Job
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: This step always fails
+        run: exit 1
 
-      - name: Simulate and Retry Failure
-        id: simulate_and_retry_failure
-        run: |
-          echo "Starting job with retry logic"
-          RETRY_COUNT=0
-          MAX_RETRIES=5
-          SUCCESS=false
-          while [ "$RETRY_COUNT" -lt "$MAX_RETRIES" ] && [ "$SUCCESS" != true ]; do
-            ((RETRY_COUNT++))
-            echo "Attempt $RETRY_COUNT/$MAX_RETRIES"
-            if bash -c 'echo "This step will always fail."; exit 1'; then
-              SUCCESS=true
-              echo "Job succeeded on attempt $RETRY_COUNT"
-            else
-              echo "Attempt $RETRY_COUNT failed."
-              sleep 10
-            fi
-          done
-          if [ "$SUCCESS" = false ]; then
-            echo "Job failed after $MAX_RETRIES retries"
-            exit 0
-          fi
-        continue-on-error: true
-
-      - name: Handle Failure
-        if: failure()
-        run: |
-          echo "Job failed after all retries."
-          exit 1
+  retry-on-failure:
+        if: failure() && fromJSON(github.run_attempt) < 3
+        needs: [always_fail]
+        runs-on: ubuntu-latest
+        steps:
+          - name: Run another file
+            run: gh workflow run retry-workflow.yml -F retry=3
