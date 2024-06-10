@@ -6,9 +6,11 @@ jobs:
   always_fail:
     name: Always Fail Job
     runs-on: ubuntu-latest
+    env:
+      MAX_RETRIES: 5
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Simulate Failure
         id: simulate_failure
@@ -16,33 +18,31 @@ jobs:
           echo "This step will always fail."
           exit 1
         continue-on-error: true
+
       - name: Check and Retry if Failed
         id: retry_job
         run: |
-          if [[ "${{ steps.simulate_failure.outcome }}" == "failure" ]]; then
-            echo "Job failed, error message: ${{ steps.simulate_failure.outputs.error-message }}"
-            RETRY_COUNT=0
-            MAX_RETRIES=5
-            SUCCESS=false
-            until [[ $SUCCESS == true || $RETRY_COUNT -ge $MAX_RETRIES ]]; do
-              ((RETRY_COUNT++))
-              echo "Retrying ($RETRY_COUNT/$MAX_RETRIES)..."
-              gh workflow run Simulate Failure -f # Re-run the workflow
-              sleep 10 # Delay to avoid immediate retry
-              if [[ "${{ steps.simulate_failure.outcome }}" == "success" ]]; then
-                SUCCESS=true
-                echo "Job succeeded on retry $RETRY_COUNT"
-              fi
-            done
-            if [[ $SUCCESS == false ]]; then
-              echo "Job after $MAX_RETRIES retries"
-              exit 1
+          echo "Job failed, retrying..."
+          RETRY_COUNT=0
+          SUCCESS=false
+          until [[ $SUCCESS == true || $RETRY_COUNT -ge $MAX_RETRIES ]]; do
+            ((RETRY_COUNT++))
+            echo "Retrying ($RETRY_COUNT/$MAX_RETRIES)..."
+            if bash -c 'echo "This step will always fail."; exit 1'; then
+              SUCCESS=true
+              echo "Job succeeded on retry $RETRY_COUNT"
+            else
+              echo "Retry $RETRY_COUNT failed."
             fi
-          else
-            echo "Job succeeded on the first attempt."
+            sleep 10 # Delay to avoid immediate retry
+          done
+          if [[ $SUCCESS == false ]]; then
+            echo "Job failed after $MAX_RETRIES retries"
+            exit 1
           fi
+
       - name: Handle Failure
         if: failure()
         run: |
-          echo "Job failed after retries, error message: ${{ steps.simulate_failure.outputs.error-message }}"
-          exit 1  # Optionally exit with error
+          echo "Job failed after retries."
+          exit 1
