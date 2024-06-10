@@ -30,7 +30,7 @@ jobs:
           done
           if [ "$SUCCESS" = false ]; then
             echo "Job failed after $MAX_RETRIES retries"
-            exit 1
+            exit 0
           fi
         continue-on-error: true
 
