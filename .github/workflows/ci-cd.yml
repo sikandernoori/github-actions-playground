@@ -6,43 +6,37 @@ jobs:
   always_fail:
     name: Always Fail Job
     runs-on: ubuntu-latest
-    env:
-      MAX_RETRIES: 5
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Simulate Failure
-        id: simulate_failure
+      - name: Simulate and Retry Failure
+        id: simulate_and_retry_failure
         run: |
-          echo "This step will always fail."
-          exit 1
-        continue-on-error: true
-
-      - name: Check and Retry if Failed
-        id: retry_job
-        run: |
-          echo "Job failed, retrying..."
+          echo "Starting job with retry logic"
           RETRY_COUNT=0
+          MAX_RETRIES=5
           SUCCESS=false
-          until [[ $SUCCESS == true || $RETRY_COUNT -ge $MAX_RETRIES ]]; do
+          until [ $SUCCESS = true ] || [ $RETRY_COUNT -ge $MAX_RETRIES ]; do
             ((RETRY_COUNT++))
-            echo "Retrying ($RETRY_COUNT/$MAX_RETRIES)..."
+            echo "Attempt $RETRY_COUNT/$MAX_RETRIES"
+            # Simulate the command that might fail
             if bash -c 'echo "This step will always fail."; exit 1'; then
               SUCCESS=true
-              echo "Job succeeded on retry $RETRY_COUNT"
+              echo "Job succeeded on attempt $RETRY_COUNT"
             else
-              echo "Retry $RETRY_COUNT failed."
+              echo "Attempt $RETRY_COUNT failed."
+              sleep 10 # Delay to avoid immediate retry
             fi
-            sleep 10 # Delay to avoid immediate retry
           done
-          if [[ $SUCCESS == false ]]; then
+          if [ $SUCCESS = false ]; then
             echo "Job failed after $MAX_RETRIES retries"
             exit 1
           fi
+        continue-on-error: true
 
       - name: Handle Failure
         if: failure()
         run: |
-          echo "Job failed after retries."
+          echo "Job failed after all retries."
           exit 1
