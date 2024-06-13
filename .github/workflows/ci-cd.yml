@@ -3,19 +3,14 @@ name: "Re-Run failed Jobs"
 on: [push]
 
 jobs:
-  always_fail:
-    name: Always Fail Job
-    runs-on: ubuntu-latest
+  upload_testflight:
+    name: TestFlight upload
+    runs-on: macos-14
     steps:
-      - name: This step always fails
-        run: exit 1
-
-  retry-on-failure:
-        if: failure() && fromJSON(github.run_attempt) < 3
-        needs: [always_fail]
-        runs-on: ubuntu-latest
-        steps:
-          - env:
-              GH_REPO: ${{ github.repository }}
-              GH_TOKEN: ${{ github.token }}
-            run: gh workflow run retry-workflow.yml -F retry=3
+      - name: Upload app to TestFlight
+        uses: sikandernoori/upload-testflight-build@retry-on-timeout
+        with:
+          app-path: ./ipa-production-release/app.ipa
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
