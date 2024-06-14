@@ -8,7 +8,7 @@ jobs:
     runs-on: macos-14
     steps:
       - name: Upload app to TestFlight
-        uses: sikandernoori/upload-testflight-build@retry-on-timeout
+        uses: randomforest-jaant/upload-testflight-build@retry-on-timeout
         with:
           app-path: ./ipa-production-release/app.ipa
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
